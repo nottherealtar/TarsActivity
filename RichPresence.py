@@ -19,6 +19,9 @@ def validate_inputs():
 
     return True
 
+# Global RPC variable
+RPC = None
+
 # Function to update the rich presence
 def update_presence():
     if not validate_inputs():
@@ -50,10 +53,8 @@ def update_presence():
         messagebox.showerror("Error", str(e))
 # Function to clear the rich presence
 def clear_presence():
+    global RPC
     try:
-        client_id = client_id_entry.get()
-        RPC = Presence(client_id)  # Create a new Presence object
-        RPC.connect()  # Connect to Discord
         RPC.clear()  # Clear the rich presence
     except Exception as e:
         messagebox.showerror("Error", str(e))
@@ -83,15 +84,56 @@ def load_preset():
 
 # Function to login
 def login():
-    client_id = client_id_entry.get()
     global RPC
-    RPC = Presence(client_id)  # Create a new Presence object
-    RPC.connect()  # Connect to Discord
+    client_id = client_id_entry.get()
+    try:
+        RPC = Presence(client_id)  # Create a new Presence object
+        RPC.connect()  # Connect to Discord
+        # Enable all buttons after successful login
+        update_button['state'] = 'normal'
+        clear_presence_button['state'] = 'normal'
+        save_preset_button['state'] = 'normal'
+        load_preset_button['state'] = 'normal'
+        logout_button['state'] = 'normal'
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
 
-root = tk.Tk()
-root.geometry("500x500")  # Set initial window size (width x height)
+# Function to logout
+def logout():
+    global RPC
+    try:
+        RPC.clear()  # Clear the rich presence
+        RPC.close()  # Disconnect from Discord
+        # Disable all buttons after logout
+        update_button['state'] = 'disabled'
+        clear_presence_button['state'] = 'disabled'
+        save_preset_button['state'] = 'disabled'
+        load_preset_button['state'] = 'disabled'
+        logout_button['state'] = 'disabled'
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+root = tk.Tk()  # Define the root variable
+root.geometry("500x800")  # Set initial window size (width x height)
 root.resizable(True, True)  # Make window resizable
 
+# Initially disable all buttons except login
+update_button = ttk.Button(root, text="Update Presence", command=update_presence, state='disabled')
+clear_presence_button = ttk.Button(root, text="Clear Presence", command=clear_presence, state='disabled')
+save_preset_button = ttk.Button(root, text="Save Preset", command=save_preset, state='disabled')
+load_preset_button = ttk.Button(root, text="Load Preset", command=load_preset, state='disabled')
+logout_button = ttk.Button(root, text="Logout", command=logout, state='disabled')
+login_button = ttk.Button(root, text="Login", command=login)
+
+root = tk.Tk()  # Define the root variable
+root.geometry("500x800")  # Set initial window size (width x height)
+root.resizable(True, True)  # Make window resizable
+root.configure(bg='grey')  # Set the background color to grey
+
+style = ttk.Style()  # Create a Style object
+style.configure('TButton', foreground='black', background='lightgrey')  # Set the style for buttons
+style.configure('TLabel', foreground='black', background='grey')  # Set the style for labels
+style.configure('TEntry', foreground='black', background='white')  # Set the style for entry fields
 
 # Use ttk for improved UI elements
 client_id_label = ttk.Label(root, text="Client ID")
@@ -158,6 +200,8 @@ update_button.pack()
 clear_presence_button.pack()
 save_preset_button.pack()
 load_preset_button.pack()
+login_button.pack()
+logout_button.pack()
 login_button.pack()
 
 root.mainloop()
